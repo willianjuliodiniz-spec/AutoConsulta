@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { Logo } from '@/components/Logo'
 
 export interface NavbarLink {
   href: string
@@ -110,13 +111,9 @@ export function Navbar({
       className={`${positionClasses} z-50 bg-[#0B0F19]/85 backdrop-blur-md border-b border-gray-800/60 transition-all duration-300`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-emerald-400 flex items-center justify-center text-[#0B0F19] font-black text-xl shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform">
-            <i className="fa-solid fa-shield-car"></i>
-          </div>
-          <span className="text-xl font-extrabold tracking-tight text-white">
-            Auto<span className="text-emerald-400">Consulta</span>
-          </span>
+        <Link href="/" className="flex items-center group">
+          {/* A Navbar tem fundo escuro, então usa a variante "light" */}
+          <Logo variant="light" />
         </Link>
 
         {hasLinks && (

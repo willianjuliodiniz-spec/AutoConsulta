@@ -1,9 +1,11 @@
 'use client'
 
 import React, { useState, useRef, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Navbar } from '@/components/Navbar'
+import { Logo } from '@/components/Logo'
 
 const LANDING_LINKS = [
   { href: '#recursos', label: 'O que revela' },
@@ -661,12 +663,9 @@ export default function LandingPage() {
       {/* Rodapé */}
       <footer className="bg-[#0B0F19] border-t border-gray-800 pt-16 pb-12 text-gray-400 text-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500 text-[#0B0F19] font-black flex items-center justify-center">
-              <i className="fa-solid fa-shield-car"></i>
-            </div>
-            <span className="text-lg font-bold text-white">AutoConsulta</span>
-          </div>
+          <Link href="/" className="flex items-center group">
+            <Logo variant="light" size="sm" />
+          </Link>
           <p className="text-xs text-gray-500">
             © 2026 AutoConsulta. Todos os direitos reservados. Plataforma independente de consulta veicular.
           </p>
