@@ -48,7 +48,8 @@ function LoginContent() {
 
   const getDestinationPath = () => {
     if (activePlate) return `/consulta/${activePlate}`
-    if (activePlan) return `/?comprar=${activePlan}#planos`
+    // Sem fragmento (#): o Supabase anexa tokens ao hash no retorno do OAuth/e-mail
+    if (activePlan) return `/?comprar=${activePlan}`
     return '/'
   }
 

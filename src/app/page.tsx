@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Navbar } from '@/components/Navbar'
@@ -13,19 +13,64 @@ const LANDING_LINKS = [
   { href: '#faq', label: 'FAQ' },
 ]
 
+type PlanId = '1-credito' | '3-creditos'
+
+const isPlanId = (value: string | null): value is PlanId =>
+  value === '1-credito' || value === '3-creditos'
+
 export default function LandingPage() {
   const [placa, setPlaca] = useState('')
   const [loading, setLoading] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const [buyingPlan, setBuyingPlan] = useState<PlanId | null>(null)
+  const [paymentStatus, setPaymentStatus] = useState<string | null>(null)
+  const [creditsRefreshKey, setCreditsRefreshKey] = useState(0)
   
   const plateInputRef = useRef<HTMLInputElement>(null)
+  const autoCheckoutStarted = useRef(false)
   const router = useRouter()
+
+  // Inicia o pagamento no Mercado Pago. Sem sessão, envia para o login e volta aqui depois.
+  const startCheckout = useCallback(async (plan: PlanId) => {
+    setBuyingPlan(plan)
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session) {
+        router.push(`/login?plano=${plan}`)
+        return
+      }
+
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan, userId: session.user.id }),
+      })
+      const data = await response.json()
+
+      if (data.init_point) {
+        // Mantém o botão em "carregando" enquanto o navegador redireciona
+        window.location.href = data.init_point
+        return
+      }
+
+      console.error('Resposta da API:', data)
+      alert('Erro ao gerar link de pagamento. Tente novamente.')
+    } catch (err) {
+      console.error('Erro ao chamar checkout:', err)
+      alert('Erro de conexão ao processar pagamento.')
+    }
+
+    setBuyingPlan(null)
+  }, [router])
 
   // Garante que o botão destrava se o usuário voltar para a página (BFCache do navegador)
   useEffect(() => {
     const handlePageShow = (event: PageTransitionEvent) => {
       if (event.persisted) {
         setLoading(false)
+        setBuyingPlan(null)
       }
     }
     window.addEventListener('pageshow', handlePageShow)
@@ -34,6 +79,48 @@ export default function LandingPage() {
       setLoading(false) // Reseta ao desmontar/montar
     }
   }, [])
+
+  // Trata os parâmetros de URL:
+  //  - ?comprar=<plano>: usuário voltou do login com intenção de compra -> segue direto para o pagamento
+  //  - ?status=<...>: retorno do Mercado Pago
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const planToBuy = params.get('comprar')
+    const status = params.get('status')
+
+    if (isPlanId(planToBuy)) {
+      if (autoCheckoutStarted.current) return
+      autoCheckoutStarted.current = true
+      // Limpa a URL para que voltar do Mercado Pago não reinicie a compra
+      window.history.replaceState(null, '', window.location.pathname)
+      startCheckout(planToBuy)
+      return
+    }
+
+    if (status) {
+      // Adiado para fora do corpo síncrono do efeito (evita renderizações em cascata).
+      // A URL só é limpa dentro do timer para sobreviver à dupla execução do Strict Mode.
+      const timer = setTimeout(() => {
+        window.history.replaceState(null, '', window.location.pathname)
+        setPaymentStatus(status)
+      }, 0)
+      return () => clearTimeout(timer)
+    }
+  }, [startCheckout])
+
+  // Após pagamento aprovado, o webhook credita de forma assíncrona: atualiza o saldo por alguns instantes
+  useEffect(() => {
+    if (paymentStatus !== 'success') return
+
+    let attempts = 0
+    const interval = setInterval(() => {
+      attempts += 1
+      setCreditsRefreshKey((key) => key + 1)
+      if (attempts >= 10) clearInterval(interval)
+    }, 3000)
+
+    return () => clearInterval(interval)
+  }, [paymentStatus])
 
   const handleConsult = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -102,7 +189,7 @@ export default function LandingPage() {
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
       {/* Header (componente compartilhado) */}
-      <Navbar position="fixed" links={LANDING_LINKS}>
+      <Navbar position="fixed" links={LANDING_LINKS} creditsRefreshKey={creditsRefreshKey}>
         <button
           onClick={handleConsultarAgoraClick}
           type="button"
@@ -111,6 +198,37 @@ export default function LandingPage() {
           Consultar Agora
         </button>
       </Navbar>
+
+      {/* Aviso de retorno do pagamento */}
+      {paymentStatus && (
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-2rem)] max-w-xl">
+          <div
+            className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-sm shadow-xl backdrop-blur-md ${
+              paymentStatus === 'success'
+                ? 'bg-emerald-950/90 border-emerald-500/50 text-emerald-100'
+                : paymentStatus === 'pending'
+                ? 'bg-amber-950/90 border-amber-500/50 text-amber-100'
+                : 'bg-red-950/90 border-red-500/50 text-red-100'
+            }`}
+          >
+            <span className="flex-1">
+              {paymentStatus === 'success'
+                ? 'Pagamento aprovado! Seus créditos serão adicionados ao saldo em instantes.'
+                : paymentStatus === 'pending'
+                ? 'Pagamento pendente. Assim que for confirmado, seus créditos serão adicionados.'
+                : 'O pagamento não foi concluído. Você pode tentar novamente quando quiser.'}
+            </span>
+            <button
+              type="button"
+              onClick={() => setPaymentStatus(null)}
+              aria-label="Fechar aviso"
+              className="opacity-70 hover:opacity-100 cursor-pointer"
+            >
+              <i className="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Hero Section */}
       <section id="consulta-box" className="relative pt-32 pb-20 md:pt-44 md:pb-32 overflow-hidden">
@@ -361,11 +479,12 @@ export default function LandingPage() {
                 </ul>
               </div>
               <button 
-                onClick={() => handleGoToLogin('plano=1-credito')}
+                onClick={() => startCheckout('1-credito')}
+                disabled={buyingPlan !== null}
                 type="button"
-                className="w-full bg-gray-800 hover:bg-gray-700 text-white font-semibold py-3.5 rounded-xl text-center transition-colors cursor-pointer"
+                className="w-full bg-gray-800 hover:bg-gray-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-3.5 rounded-xl text-center transition-colors cursor-pointer"
               >
-                Selecionar 1 Crédito
+                {buyingPlan === '1-credito' ? 'Aguarde...' : 'Selecionar 1 Crédito'}
               </button>
             </div>
 
@@ -385,11 +504,12 @@ export default function LandingPage() {
                 </ul>
               </div>
               <button 
-                onClick={() => handleGoToLogin('plano=3-creditos')}
+                onClick={() => startCheckout('3-creditos')}
+                disabled={buyingPlan !== null}
                 type="button"
-                className="w-full bg-emerald-500 hover:bg-emerald-400 text-[#0B0F19] font-bold py-3.5 rounded-xl text-center transition-all shadow-lg shadow-emerald-500/20 cursor-pointer"
+                className="w-full bg-emerald-500 hover:bg-emerald-400 disabled:opacity-60 disabled:cursor-not-allowed text-[#0B0F19] font-bold py-3.5 rounded-xl text-center transition-all shadow-lg shadow-emerald-500/20 cursor-pointer"
               >
-                Comprar Pacote com Desconto
+                {buyingPlan === '3-creditos' ? 'Aguarde...' : 'Comprar Pacote com Desconto'}
               </button>
             </div>
           </div>

@@ -18,6 +18,16 @@ export async function POST(request: Request) {
     const unitPrice = isPack ? 39.90 : 29.90
     const creditsToAdd = isPack ? 3 : 1
 
+    const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || '').replace(/\/$/, '')
+
+    // Compras feitas pela landing não têm placa: o retorno vai para a página inicial
+    const cleanPlate =
+      typeof plate === 'string' ? plate.toUpperCase().replace(/[^A-Z0-9]/g, '') : ''
+    const returnPath = cleanPlate ? `/consulta/${cleanPlate}` : '/'
+
+    // O Mercado Pago só aceita auto_return com back_urls HTTPS (não funciona em localhost/HTTP)
+    const canAutoReturn = baseUrl.startsWith('https://')
+
     const preference = new Preference(client)
     const result = await preference.create({
       body: {
@@ -31,13 +41,13 @@ export async function POST(request: Request) {
           },
         ],
         back_urls: {
-          success: `${process.env.NEXT_PUBLIC_APP_URL}/consulta/${plate}?status=success`,
-          failure: `${process.env.NEXT_PUBLIC_APP_URL}/consulta/${plate}?status=failure`,
-          pending: `${process.env.NEXT_PUBLIC_APP_URL}/consulta/${plate}?status=pending`,
+          success: `${baseUrl}${returnPath}?status=success`,
+          failure: `${baseUrl}${returnPath}?status=failure`,
+          pending: `${baseUrl}${returnPath}?status=pending`,
         },
-        // auto_return removido para evitar erro local em HTTP
+        ...(canAutoReturn ? { auto_return: 'approved' as const } : {}),
         external_reference: JSON.stringify({ userId, creditsToAdd }),
-        notification_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/webhook/mercadopago`,
+        notification_url: `${baseUrl}/api/webhook/mercadopago`,
       },
     })
 

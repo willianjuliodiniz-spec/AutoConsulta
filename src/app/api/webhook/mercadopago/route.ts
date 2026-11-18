@@ -6,13 +6,20 @@ const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN || '' 
 })
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
 export async function POST(request: Request) {
   try {
+    // Criado dentro do handler: se a chave de serviço faltar, o erro é logado de forma clara
+    // em vez de derrubar o carregamento do módulo.
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('Webhook MP: SUPABASE_SERVICE_ROLE_KEY não definida — os créditos não podem ser adicionados.')
+      return NextResponse.json({ error: 'Configuração ausente' }, { status: 500 })
+    }
+
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    )
+
     const url = new URL(request.url)
     const topic = url.searchParams.get('topic') || url.searchParams.get('type')
     const id = url.searchParams.get('id') || url.searchParams.get('data.id')
