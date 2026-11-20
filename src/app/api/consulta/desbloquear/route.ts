@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-export const runtime = 'nodejs'
-
 const MAX_ATTEMPTS = 3
 
 // Campos permitidos em consultations.vehicle_data (mesmo formato lido por /historico)

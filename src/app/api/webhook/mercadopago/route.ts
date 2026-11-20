@@ -3,8 +3,6 @@ import { MercadoPagoConfig, Payment } from 'mercadopago'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { createHmac, timingSafeEqual } from 'node:crypto'
 
-export const runtime = 'nodejs'
-
 /*
  * Pré-requisitos (configurar fora deste arquivo):
  *
