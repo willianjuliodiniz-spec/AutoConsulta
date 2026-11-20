@@ -4,11 +4,26 @@ import React, { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { getClientOrigin } from '@/lib/site'
 
 type AuthMode = 'login' | 'register'
 
+const VALID_PLANS = ['1-credito', '3-creditos']
+
 function LoginContent() {
-  const [mode, setMode] = useState<AuthMode>('login')
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Valores derivados da URL (sem setState em effect)
+  const plateParam = searchParams.get('placa')
+  const planParam = searchParams.get('plano')
+  const activePlate = plateParam
+    ? plateParam.trim().toUpperCase().replace(/[^A-Z0-9]/g, '') || null
+    : null
+  const activePlan =
+    !activePlate && planParam && VALID_PLANS.includes(planParam) ? planParam : null
+
+  const [mode, setMode] = useState<AuthMode>(activePlate || activePlan ? 'register' : 'login')
   const [isResetMode, setIsResetMode] = useState(false) // Novo estado para tela de recuperar senha
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -17,34 +32,10 @@ function LoginContent() {
   const [verificationSent, setVerificationSent] = useState(false)
   const [resetSent, setResetSent] = useState(false) // Novo estado para confirmar envio do e-mail de recuperação
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  
-  const [activePlate, setActivePlate] = useState<string | null>(null)
-  const [activePlan, setActivePlan] = useState<string | null>(null)
-  
-  const router = useRouter()
-  const searchParams = useSearchParams()
 
   useEffect(() => {
     localStorage.removeItem('autoconsulta_pending_plate')
-
-    const plateParam = searchParams.get('placa')
-    const planParam = searchParams.get('plano')
-
-    if (plateParam) {
-      const formattedPlate = plateParam.trim().toUpperCase().replace(/[^A-Z0-9]/g, '')
-      setActivePlate(formattedPlate)
-      setActivePlan(null)
-      setMode('register')
-    } else if (planParam) {
-      setActivePlan(planParam)
-      setActivePlate(null)
-      setMode('register')
-    } else {
-      setActivePlate(null)
-      setActivePlan(null)
-      setMode('login')
-    }
-  }, [searchParams])
+  }, [])
 
   const getDestinationPath = () => {
     if (activePlate) return `/consulta/${activePlate}`
@@ -54,7 +45,7 @@ function LoginContent() {
   }
 
   const getRedirectUrl = () => {
-    return `${window.location.origin}${getDestinationPath()}`
+    return `${getClientOrigin()}${getDestinationPath()}`
   }
 
   // Função de Envio de Login ou Cadastro (com e-mail duplicado tratado)
@@ -119,7 +110,7 @@ function LoginContent() {
 
     try {
       // URL para onde o usuário voltará após clicar no link do e-mail para redefinir a senha
-      const redirectTo = `${window.location.origin}/atualizar-senha`
+      const redirectTo = `${getClientOrigin()}/atualizar-senha`
 
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo,

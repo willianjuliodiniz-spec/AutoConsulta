@@ -318,7 +318,7 @@ export default function LandingPage() {
               O que o relatório do AutoConsulta revela?
             </h3>
             <p className="text-gray-400 text-base sm:text-lg">
-              Não compre "gato por lebre". Tenha em mãos todas as informações técnicas e legais antes de fechar negócio.
+              Não compre &quot;gato por lebre&quot;. Tenha em mãos todas as informações técnicas e legais antes de fechar negócio.
             </p>
           </div>
 
@@ -538,7 +538,7 @@ export default function LandingPage() {
                   <i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i>
                 </div>
                 <p className="text-gray-300 text-sm leading-relaxed mb-6 italic">
-                  "Quase comprei um SUV anunciado como único dono. Na consulta do AutoConsulta descobri que o carro era de leilão de seguradora com PT. Me livrei de um prejuízo de mais de R$ 30 mil!"
+                  &quot;Quase comprei um SUV anunciado como único dono. Na consulta do AutoConsulta descobri que o carro era de leilão de seguradora com PT. Me livrei de um prejuízo de mais de R$ 30 mil!&quot;
                 </p>
               </div>
               <div className="flex items-center gap-4 border-t border-gray-800 pt-4">
@@ -558,7 +558,7 @@ export default function LandingPage() {
                   <i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i>
                 </div>
                 <p className="text-gray-300 text-sm leading-relaxed mb-6 italic">
-                  "Sou lojista de seminovos e usamos o AutoConsulta diariamente para avaliar os carros que entram na troca. Rapidez incrível e dados muito precisos que nos dão segurança total."
+                  &quot;Sou lojista de seminovos e usamos o AutoConsulta diariamente para avaliar os carros que entram na troca. Rapidez incrível e dados muito precisos que nos dão segurança total.&quot;
                 </p>
               </div>
               <div className="flex items-center gap-4 border-t border-gray-800 pt-4">
@@ -578,7 +578,7 @@ export default function LandingPage() {
                   <i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i><i className="fa-solid fa-star"></i>
                 </div>
                 <p className="text-gray-300 text-sm leading-relaxed mb-6 italic">
-                  "O odômetro do carro que eu ia comprar marcava 45 mil km. No relatório vi que na última inspeção ele estava com 120 mil! Denunciei o vendedor e agradeço muito à plataforma."
+                  &quot;O odômetro do carro que eu ia comprar marcava 45 mil km. No relatório vi que na última inspeção ele estava com 120 mil! Denunciei o vendedor e agradeço muito à plataforma.&quot;
                 </p>
               </div>
               <div className="flex items-center gap-4 border-t border-gray-800 pt-4">
@@ -667,13 +667,14 @@ export default function LandingPage() {
             <Logo variant="light" size="sm" />
           </Link>
           <p className="text-xs text-gray-500">
-            © 2026 AutoConsulta. Todos os direitos reservados. Plataforma independente de consulta veicular.
+            © 2026 AutoConsulta (www.autoconsultaveicular.com.br). Todos os direitos reservados. Plataforma independente de consulta veicular.
           </p>
           <div className="flex items-center gap-6 text-xs">
             <button onClick={() => handleGoToLogin()} type="button" className="hover:text-emerald-400 transition-colors cursor-pointer">
               Área do Cliente
             </button>
-            <a href="#faq" className="hover:text-emerald-400 transition-colors">Termos de Uso</a>
+            <Link href="/termos" className="hover:text-emerald-400 transition-colors">Termos de Uso</Link>
+            <Link href="/privacidade" className="hover:text-emerald-400 transition-colors">Política de Privacidade</Link>
           </div>
         </div>
       </footer>

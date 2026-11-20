@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { MercadoPagoConfig, Preference } from 'mercadopago'
+import { getBaseUrl } from '@/lib/site'
 
 const client = new MercadoPagoConfig({ 
   accessToken: process.env.MP_ACCESS_TOKEN || '' 
@@ -18,7 +19,7 @@ export async function POST(request: Request) {
     const unitPrice = isPack ? 39.90 : 29.90
     const creditsToAdd = isPack ? 3 : 1
 
-    const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || '').replace(/\/$/, '')
+    const baseUrl = getBaseUrl()
 
     // Compras feitas pela landing não têm placa: o retorno vai para a página inicial
     const cleanPlate =

@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AutoConsulta Veicular
 
-## Getting Started
+Site oficial: **https://www.autoconsultaveicular.com.br**
 
-First, run the development server:
+## Desenvolvimento
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abra [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Variáveis de ambiente (produção)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variável | Valor |
+| --- | --- |
+| `NEXT_PUBLIC_APP_URL` | `https://www.autoconsultaveicular.com.br` |
+| `NEXT_PUBLIC_SUPABASE_URL` | URL do projeto Supabase |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave publicável do Supabase |
+| `SUPABASE_SERVICE_ROLE_KEY` | Chave de serviço (somente servidor; necessária para o webhook) |
+| `MP_ACCESS_TOKEN` | Token de produção do Mercado Pago |
+| `USE_MOCK` | `true` enquanto a API externa de placas não estiver integrada |
 
-## Learn More
+O domínio oficial está centralizado em `src/lib/site.ts`.
 
-To learn more about Next.js, take a look at the following resources:
+## Checklist de configuração externa
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Supabase → Authentication → URL Configuration**: Site URL = `https://www.autoconsultaveicular.com.br`; Redirect URLs: `https://www.autoconsultaveicular.com.br/**`.
+- **Google OAuth (Google Cloud Console)**: origem JavaScript autorizada `https://www.autoconsultaveicular.com.br`; o URI de redirecionamento continua sendo o callback do Supabase.
+- **Mercado Pago**: webhook de produção em `https://www.autoconsultaveicular.com.br/api/webhook/mercadopago`.
+- **DNS / hospedagem**: apontar `www` para o provedor e redirecionar o domínio raiz (`autoconsultaveicular.com.br`) para `www`.

@@ -1,3 +1,11 @@
+import Image from 'next/image'
+
+// Arquivo em public/ (o nome real do arquivo tem extensão duplicada)
+const LOGO_SRC = '/logo.png.png'
+// Dimensões intrínsecas do arquivo, usadas pelo next/image para reservar o espaço (proporção)
+const LOGO_WIDTH = 282
+const LOGO_HEIGHT = 318
+
 interface LogoProps {
   /**
    * 'light': texto claro, para fundos escuros (padrão do site).
@@ -11,11 +19,11 @@ interface LogoProps {
 
 const SIZES = {
   md: {
-    box: 'w-10 h-10 rounded-xl text-xl',
+    image: 'h-11 w-auto',
     text: 'text-xl',
   },
   sm: {
-    box: 'w-8 h-8 rounded-lg text-base',
+    image: 'h-9 w-auto',
     text: 'text-lg',
   },
 } as const
@@ -27,11 +35,13 @@ export function Logo({ variant = 'light', size = 'md', className = '' }: LogoPro
 
   return (
     <span className={`inline-flex items-center gap-2.5 ${className}`}>
-      <span
-        className={`${sizes.box} bg-gradient-to-tr from-emerald-600 to-emerald-400 flex items-center justify-center text-[#0B0F19] font-black shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform`}
-      >
-        <i className="fa-solid fa-shield-car"></i>
-      </span>
+      <Image
+        src={LOGO_SRC}
+        alt="Logo AutoConsulta"
+        width={LOGO_WIDTH}
+        height={LOGO_HEIGHT}
+        className={`${sizes.image} shrink-0 object-contain group-hover:scale-105 transition-transform`}
+      />
       <span className={`${sizes.text} font-extrabold tracking-tight ${textColor}`}>
         Auto<span className={accentColor}>Consulta</span>
       </span>
